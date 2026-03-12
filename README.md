@@ -5,7 +5,7 @@
 <h1 align="center">InkOS</h1>
 
 <p align="center">
-  <strong>智能体驱动的自主小说写作工具</strong>
+  <strong>自主小说写作智能体</strong>
 </p>
 
 <p align="center">
