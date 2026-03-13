@@ -204,24 +204,39 @@ npm i -g @actalk/inkos
 
 ### Configure
 
+**Option 1: Global config (recommended, one-time setup)**
+
 ```bash
-inkos init              # Initialize project, generates inkos.json + .env template
+inkos config set-global \
+  --provider openai \
+  --base-url https://api.openai.com/v1 \
+  --api-key sk-xxx \
+  --model gpt-4o
 ```
 
-Edit `.env`:
+Saved to `~/.inkos/.env`, shared by all projects. New projects just work without extra config.
+
+**Option 2: Per-project `.env`**
+
+```bash
+inkos init my-novel     # Initialize project
+# Edit my-novel/.env
+```
 
 ```bash
 # Required
 INKOS_LLM_PROVIDER=openai                        # openai / anthropic
 INKOS_LLM_BASE_URL=https://api.openai.com/v1     # API endpoint (proxy-friendly)
 INKOS_LLM_API_KEY=sk-xxx                          # API Key
-INKOS_LLM_MODEL=gpt-5.4                            # Model name
+INKOS_LLM_MODEL=gpt-4o                            # Model name
 
 # Optional
 # INKOS_LLM_TEMPERATURE=0.7                       # Temperature
 # INKOS_LLM_MAX_TOKENS=8192                        # Max output tokens
 # INKOS_LLM_THINKING_BUDGET=0                      # Anthropic extended thinking budget
 ```
+
+Project `.env` overrides global config. Skip it if no override needed.
 
 ### Usage
 
@@ -257,8 +272,10 @@ inkos up                          # Daemon mode
 | `inkos status` | Project status |
 | `inkos export <id>` | Export book to txt/md |
 | `inkos radar scan` | Scan platform trends |
-| `inkos config set/show` | View/update config |
-| `inkos doctor` | Diagnose setup issues |
+| `inkos config set-global` | Set global LLM config (~/.inkos/.env) |
+| `inkos config show-global` | Show global config |
+| `inkos config set/show` | View/update project config |
+| `inkos doctor` | Diagnose setup issues (includes API connectivity test) |
 | `inkos up / down` | Start/stop daemon |
 
 All commands support `--json` for structured output. `draft`/`write next`/`book create` support `--context` for writing guidance.

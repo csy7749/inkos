@@ -204,18 +204,31 @@ npm i -g @actalk/inkos
 
 ### 配置
 
+**方式一：全局配置（推荐，只需一次）**
+
 ```bash
-inkos init              # 初始化项目，生成 inkos.json + .env 模板
+inkos config set-global \
+  --provider openai \
+  --base-url https://api.openai.com/v1 \
+  --api-key sk-xxx \
+  --model gpt-4o
 ```
 
-编辑 `.env`：
+配置保存在 `~/.inkos/.env`，所有项目共享。之后新建项目不用再配。
+
+**方式二：项目级 `.env`**
+
+```bash
+inkos init my-novel     # 初始化项目
+# 编辑 my-novel/.env
+```
 
 ```bash
 # 必填
 INKOS_LLM_PROVIDER=openai                        # openai / anthropic
 INKOS_LLM_BASE_URL=https://api.openai.com/v1     # API 地址（支持中转站）
 INKOS_LLM_API_KEY=sk-xxx                          # API Key
-INKOS_LLM_MODEL=gpt-5.4                            # 模型名
+INKOS_LLM_MODEL=gpt-4o                            # 模型名
 
 # 可选
 # INKOS_LLM_TEMPERATURE=0.7                       # 温度
@@ -223,6 +236,7 @@ INKOS_LLM_MODEL=gpt-5.4                            # 模型名
 # INKOS_LLM_THINKING_BUDGET=0                      # Anthropic 扩展思考预算
 ```
 
+项目 `.env` 会覆盖全局配置。不需要覆盖时可以不写。
 
 ### 使用
 
@@ -258,8 +272,10 @@ inkos up                       # 守护进程模式
 | `inkos status` | 项目状态 |
 | `inkos export <id>` | 导出书籍为 txt/md |
 | `inkos radar scan` | 扫描平台趋势 |
-| `inkos config set/show` | 查看/更新配置 |
-| `inkos doctor` | 诊断配置问题 |
+| `inkos config set-global` | 设置全局 LLM 配置（~/.inkos/.env） |
+| `inkos config show-global` | 查看全局配置 |
+| `inkos config set/show` | 查看/更新项目配置 |
+| `inkos doctor` | 诊断配置问题（含 API 连通性测试） |
 | `inkos up / down` | 启动/停止守护进程 |
 
 所有命令支持 `--json` 输出结构化数据，`draft`/`write next`/`book create` 支持 `--context` 传入创作指导。

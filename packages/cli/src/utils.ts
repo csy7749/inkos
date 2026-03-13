@@ -1,7 +1,11 @@
 import { readFile } from "node:fs/promises";
+import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { config as loadEnv } from "dotenv";
 import { createLLMClient, type ProjectConfig, ProjectConfigSchema } from "@actalk/inkos-core";
+
+export const GLOBAL_CONFIG_DIR = join(homedir(), ".inkos");
+export const GLOBAL_ENV_PATH = join(GLOBAL_CONFIG_DIR, ".env");
 
 export async function resolveContext(opts: {
   readonly context?: string;
@@ -30,8 +34,9 @@ export function findProjectRoot(): string {
 export async function loadConfig(): Promise<ProjectConfig> {
   const root = findProjectRoot();
 
-  // Load .env from project root
-  loadEnv({ path: join(root, ".env") });
+  // Load global ~/.inkos/.env first, then project .env overrides
+  loadEnv({ path: GLOBAL_ENV_PATH });
+  loadEnv({ path: join(root, ".env"), override: true });
 
   const configPath = join(root, "inkos.json");
   try {
@@ -52,7 +57,7 @@ export async function loadConfig(): Promise<ProjectConfig> {
     const apiKey = env.INKOS_LLM_API_KEY;
     if (!apiKey) {
       throw new Error(
-        "INKOS_LLM_API_KEY not set. Add it to your .env file.",
+        "INKOS_LLM_API_KEY not set. Run 'inkos config set-global' or add it to project .env file.",
       );
     }
     config.llm.apiKey = apiKey;

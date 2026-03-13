@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { findProjectRoot, log, logError } from "../utils.js";
+import { findProjectRoot, log, logError, GLOBAL_ENV_PATH } from "../utils.js";
 
 export const doctorCommand = new Command("doctor")
   .description("Check environment and project health")
@@ -34,16 +34,31 @@ export const doctorCommand = new Command("doctor")
       checks.push({ name: ".env", ok: false, detail: "Not found" });
     }
 
-    // 4. Check LLM API key (from .env only)
+    // 4. Check global config
+    {
+      let hasGlobal = false;
+      try {
+        const globalContent = await readFile(GLOBAL_ENV_PATH, "utf-8");
+        hasGlobal = globalContent.includes("INKOS_LLM_API_KEY=") && !globalContent.includes("your-api-key-here");
+      } catch { /* no global config */ }
+      checks.push({
+        name: "Global Config",
+        ok: hasGlobal,
+        detail: hasGlobal ? `Found (${GLOBAL_ENV_PATH})` : "Not set. Run 'inkos config set-global'",
+      });
+    }
+
+    // 5. Check LLM API key (global + project .env)
     {
       const { config: loadDotenv } = await import("dotenv");
-      loadDotenv({ path: join(root, ".env") });
+      loadDotenv({ path: GLOBAL_ENV_PATH });
+      loadDotenv({ path: join(root, ".env"), override: true });
       const apiKey = process.env.INKOS_LLM_API_KEY;
       const hasKey = !!apiKey && apiKey.length > 10 && apiKey !== "your-api-key-here";
       checks.push({
         name: "LLM API Key",
         ok: hasKey,
-        detail: hasKey ? "Configured (from .env)" : "Missing in .env — set INKOS_LLM_API_KEY",
+        detail: hasKey ? "Configured" : "Missing — run 'inkos config set-global' or add to project .env",
       });
     }
 
