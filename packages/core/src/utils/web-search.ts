@@ -35,11 +35,24 @@ export async function searchWeb(query: string): Promise<SearchResult> {
   for (const block of resultBlocks) {
     const titleMatch = block.match(/class="result__a"[^>]*>([\s\S]*?)<\/a>/);
     const snippetMatch = block.match(/class="result__snippet"[^>]*>([\s\S]*?)<\/a>/);
-    const urlMatch = block.match(/class="result__url"[^>]*>([\s\S]*?)<\/a>/);
+    // Extract href from the result__a anchor (contains the real URL with protocol)
+    const hrefMatch = block.match(/class="result__a"\s+href="([^"]*)"/);
 
     const title = titleMatch?.[1]?.replace(/<[^>]*>/g, "").trim() ?? "";
     const snippet = snippetMatch?.[1]?.replace(/<[^>]*>/g, "").trim() ?? "";
-    const resultUrl = urlMatch?.[1]?.replace(/<[^>]*>/g, "").trim() ?? "";
+    let resultUrl = "";
+
+    if (hrefMatch?.[1]) {
+      // DuckDuckGo wraps URLs in a redirect: //duckduckgo.com/l/?uddg=<encoded>&rut=<hash>
+      const href = hrefMatch[1];
+      const uddgMatch = href.match(/[?&]uddg=([^&]+)/);
+      resultUrl = uddgMatch ? decodeURIComponent(uddgMatch[1]) : href;
+    }
+
+    // Ensure URL has protocol prefix
+    if (resultUrl && !resultUrl.startsWith("http")) {
+      resultUrl = `https://${resultUrl}`;
+    }
 
     if (title) {
       results.push({ title, snippet, url: resultUrl });
